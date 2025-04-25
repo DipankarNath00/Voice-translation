@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Translator - Translate</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --text-color: #000;
+            --container-bg: #fff;
+            --button-bg: #3498db;
+            --button-hover: #2980b9;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #f4f4f4;
+            --container-bg: #1e1e1e;
+            --button-bg: #555;
+            --button-hover: #777;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            background: var(--container-bg);
+            padding: 30px;
+            max-width: 600px;
+            margin: auto;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        select, input[type="text"], button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: var(--button-bg);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .output {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #spinner {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+        }
+
+        .toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2s;
+        }
+
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+
+        .mode-toggle {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .switch-btn {
+            width: 100%;
+            background-color: #666;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <body>
+        <!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="nav-left">
+            <a href="../templates/home.html">Home</a>
+            <a href=".about.html/" class="nav-link">About Us</a>
+            <a href="./contact.html" class="nav-link">Contact</a>
+        </div>
+        <div class="nav-right">
+            <button onclick="toggleDarkMode()" class="mode-btn">🌓 Toggle Mode</button>
+        </div>
+    </div>
+</nav>
+
+
+        
+        <!-- Main Container -->
+        <div class="container">
+            <h1>Translate Speech to Multiple Languages</h1>
+    
+            <label for="language">Select Target Language:</label>
+            <select id="language">
+                <option>Hindi</option>
+                <option>Bengali</option>
+                <option>Tamil</option>
+                <option>Telugu</option>
+                <option>Gujarati</option>
+                <option>Marathi</option>
+                <option>Kannada</option>
+                <option>Malayalam</option>
+                <option>Punjabi</option>
+                <option>Odia</option>
+                <option>Urdu</option>
+                <option>French</option>
+                <option>Spanish</option>
+                <option>German</option>
+                <option>Italian</option>
+                <option>Russian</option>
+                <option>Chinese (Simplified)</option>
+                <option>Japanese</option>
+                <option>Korean</option>
+                <option>Arabic</option>
+                <option>Portuguese</option>
+            </select>
+    
+            <label><input type="checkbox" id="militaryMode"> Military Mode</label>
+            <input type="text" id="encKey" placeholder="Encryption Key">
+            <input type="text" id="decKey" placeholder="Decryption Key">
+    
+            <button onclick="startTranslation()">🎤 Speak & Translate</button>
+            <button class="switch-btn" disabled>🔁 Switch Source/Target (Coming Soon)</button>
+    
+            <div id="spinner"></div>
+    
+            <div class="output">
+                <p><strong>Original:</strong> <span id="originalText"></span></p>
+                <p><strong>Translated:</strong> <span id="translatedText"></span></p>
+                <audio id="audioPlayer" controls></audio>
+            </div>
+        </div>
+    
+        <div id="toast" class="toast"></div>
+    
+
+<div id="toast" class="toast"></div>
+
+<script>
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.className = "toast show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+    }
+
+    async function startTranslation() {
+        const language = document.getElementById('language').value;
+        const military = document.getElementById('militaryMode').checked;
+        const encKey = document.getElementById('encKey').value;
+        const decKey = document.getElementById('decKey').value;
+
+        document.getElementById('spinner').style.display = 'block';
+        showToast("🎙️ Please speak clearly...");
+
+        try {
+            const response = await fetch('/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language, military, encKey, decKey })
+            });
+
+            const result = await response.json();
+            document.getElementById('spinner').style.display = 'none';
+
+            if (result.error) {
+                showToast(`❌ ${result.error}`);
+            } else {
+                document.getElementById('originalText').textContent = result.original;
+                document.getElementById('translatedText').textContent = result.translated;
+                const audio = document.getElementById('audioPlayer');
+                audio.src = result.audio;
+                audio.load();
+                audio.play();
+                showToast(`✅ Translated to ${language}`);
+            }
+        } catch (err) {
+            document.getElementById('spinner').style.display = 'none';
+            showToast("❌ Error processing request.");
+        }
+    }
+</script>
+
+</body>
+</html>
