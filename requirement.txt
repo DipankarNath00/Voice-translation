@@ -1,0 +1,9 @@
+Flask
+SpeechRecognition
+deep-translator
+gTTS
+cryptography
+requests
+smtplib
+email
+pygame
