@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">YouTube Video Translator</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            {# Add a check for feature_unavailable if GCS_BUCKET_NAME is not set #}
+            {% if feature_unavailable %}
+                <div class="alert alert-warning" role="alert">
+                    The YouTube processing feature is currently unavailable due to a configuration issue. Please contact support.
+                </div>
+            {% else %}
+                <form method="POST" id="youtubeForm">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.video_url.label(class="form-label") }}
+                        {{ form.video_url(class="form-control", placeholder="Enter YouTube video URL") }}
+                    <small class="text-muted d-block mt-2">Note: Only the first 5 minutes of the video will be processed.</small>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.source_language.label(class="form-label") }}
+                            {{ form.source_language(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.target_language.label(class="form-label") }}
+                            {{ form.target_language(class="form-select") }}
+                        </div>
+                    </div>
+                    
+                    {{ form.submit(class="btn btn-primary") }}
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="results" class="mt-4" style="display: none;">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Results</h5>
+                <div id="originalText" class="mb-3"></div>
+                <div id="translatedText" class="mb-3"></div>
+                <audio id="translatedAudio" controls class="mt-3 mb-2" style="width: 100%;"></audio>
+                <div class="btn-group mt-2 w-100" role="group">
+                    <button id="downloadTranslatedAudio" type="button" class="btn btn-success" style="display: none;" download="translated_youtube_audio.mp3">
+                        <i class="fas fa-download"></i> Download Translated Audio
+                    </button>
+                    <button id="copyAudioLink" type="button" class="btn btn-outline-success" style="display: none;">
+                        <i class="fas fa-link"></i> Copy Audio Link
+                    </button>
+                </div>
+                <div id="downloadStatus" class="alert alert-info mt-2" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="error" class="alert alert-danger mt-4" style="display: none;">
+        <p id="errorMessage"></p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const youtubeForm = document.getElementById('youtubeForm');
+    if (!youtubeForm) return; // Don't run script if form is not present (feature_unavailable)
+
+    youtubeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Hide previous results and errors
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+        document.getElementById('downloadTranslatedAudio').style.display = 'none';
+        document.getElementById('copyAudioLink').style.display = 'none';
+        document.getElementById('downloadStatus').style.display = 'none';
+
+        const formData = new FormData(this);
+        const submitButton = youtubeForm.querySelector('input[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.value = 'Processing...';
+        
+        fetch('/youtube', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('originalText').innerHTML = `<strong>Original Text:</strong> ${data.original_text}`;
+                document.getElementById('translatedText').innerHTML = `<strong>Translated Text:</strong> ${data.translated_text}`;
+                
+                const audio = document.getElementById('translatedAudio');
+                audio.src = data.audio_url;
+                
+                const downloadLink = document.getElementById('downloadTranslatedAudio');
+                downloadLink.href = data.audio_url;
+                const filenameFromServer = data.audio_url.substring(data.audio_url.lastIndexOf('/') + 1);
+                downloadLink.setAttribute('download', filenameFromServer || 'translated_youtube_audio.mp3'); 
+                downloadLink.style.display = 'block';
+
+                const copyLinkBtn = document.getElementById('copyAudioLink');
+                copyLinkBtn.style.display = 'block';
+
+                downloadLink.addEventListener('click', function() {
+                    document.getElementById('downloadStatus').innerHTML = 'Downloading audio...';
+                    document.getElementById('downloadStatus').style.display = 'block';
+                });
+
+                copyLinkBtn.addEventListener('click', function() {
+                    const audioUrl = data.audio_url;
+                    navigator.clipboard.writeText(audioUrl)
+                        .then(() => {
+                            document.getElementById('downloadStatus').innerHTML = 'Audio link copied to clipboard!';
+                            document.getElementById('downloadStatus').style.display = 'block';
+                            setTimeout(() => {
+                                document.getElementById('downloadStatus').style.display = 'none';
+                            }, 3000);
+                        })
+                        .catch(err => {
+                            document.getElementById('downloadStatus').innerHTML = 'Failed to copy link: ' + err;
+                            document.getElementById('downloadStatus').style.display = 'block';
+                        });
+                });
+
+            } else {
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorMessage').textContent = data.error || 'An unknown error occurred.';
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorMessage').textContent = 'An error occurred while communicating with the server.';
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.value = 'Process Video';
+        });
+    });
+});
+</script>
+{% endblock %}

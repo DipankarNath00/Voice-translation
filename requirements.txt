@@ -1,0 +1,15 @@
+flask==3.0.2
+flask-login==0.6.3
+flask-wtf==1.2.1
+python-dotenv==1.0.1
+bcrypt==4.1.2
+supabase==2.3.5
+psycopg2-binary==2.9.9
+gTTS==2.5.1
+SpeechRecognition==3.10.1
+deep-translator==1.11.4
+google-cloud-speech==2.24.1
+google-cloud-texttospeech==2.15.0
+google-cloud-translate==3.13.0
+yt-dlp==2024.3.10
+pydub==0.25.1

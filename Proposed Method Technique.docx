@@ -1,0 +1,115 @@
+Chapter 4: Proposed Method/Technique
+
+1.1. Proposed Algorithm/Technique
+
+The voice translation system implements a multi-stage pipeline for processing audio content:
+
+1. Audio Input Processing:
+   - Direct voice recording through browser's Web Audio API
+   - YouTube video audio extraction (first 1 minute)
+   - Audio format standardization (16kHz, mono, MP3)
+
+2. Speech Recognition:
+   - Google Cloud Speech-to-Text API integration
+   - Language-specific recognition models
+   - Automatic punctuation and formatting
+
+3. Translation Pipeline:
+   - Deep Translator integration for text translation
+   - Support for multiple language pairs
+   - Context-aware translation handling
+
+4. Text-to-Speech Synthesis:
+   - Google Text-to-Speech (gTTS) integration
+   - Natural-sounding voice synthesis
+   - Language-specific voice models
+
+5. Military Mode (Optional):
+   - End-to-end encryption using Fernet
+   - Secure key management
+   - Location tracking and alert system
+
+1.2. Proposed System Design
+
+The system architecture follows a client-server model with the following components:
+
+1. Frontend (Web Interface):
+   - Responsive Bootstrap-based UI
+   - Real-time audio recording and playback
+   - Language selection interface
+   - Translation history display
+   - Military mode toggle
+
+2. Backend (Flask Application):
+   - RESTful API endpoints
+   - User authentication and session management
+   - Audio processing pipeline orchestration
+   - Database integration (Supabase)
+   - File management system
+
+3. External Services Integration:
+   - Google Cloud Platform:
+     * Speech-to-Text API
+     * Translate API
+     * Cloud Storage
+   - YouTube Data API (via yt-dlp)
+   - Email service for alerts
+
+4. Database Schema:
+   - Users table (authentication)
+   - Translation history
+   - Audio file metadata
+   - Security logs
+
+1.3. Functional and Nonfunctional Requirements
+
+Functional Requirements:
+
+1. Audio Processing:
+   - FR1: System must accept audio input from microphone
+   - FR2: System must process YouTube video audio
+   - FR3: System must convert audio to required format (16kHz, mono)
+   - FR4: System must limit YouTube audio to 1 minute
+
+2. Translation:
+   - FR5: System must support multiple language pairs
+   - FR6: System must provide accurate speech-to-text conversion
+   - FR7: System must maintain translation context
+   - FR8: System must generate natural-sounding speech output
+
+3. User Management:
+   - FR9: System must support user registration and login
+   - FR10: System must maintain translation history
+   - FR11: System must provide secure access to user data
+
+4. Security:
+   - FR12: System must implement military-grade encryption
+   - FR13: System must track and alert on security events
+   - FR14: System must securely manage API keys
+
+Nonfunctional Requirements:
+
+1. Performance:
+   - NFR1: System must process audio within 5 seconds
+   - NFR2: System must handle concurrent users efficiently
+   - NFR3: System must maintain response time under 2 seconds
+
+2. Reliability:
+   - NFR4: System must maintain 99.9% uptime
+   - NFR5: System must implement proper error handling
+   - NFR6: System must provide backup and recovery mechanisms
+
+3. Security:
+   - NFR7: System must encrypt sensitive data
+   - NFR8: System must implement secure authentication
+   - NFR9: System must protect against common web vulnerabilities
+
+4. Usability:
+   - NFR10: System must provide intuitive user interface
+   - NFR11: System must support multiple browsers
+   - NFR12: System must provide clear error messages
+
+5. Maintainability:
+   - NFR13: System must follow coding standards
+   - NFR14: System must include proper documentation
+   - NFR15: System must support easy updates and modifications 

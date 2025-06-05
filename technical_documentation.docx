@@ -1,0 +1,352 @@
+# Voice Translation Application - Technical Documentation
+
+## Technical Stack
+
+### Backend
+- **Framework**: Flask (Python)
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Flask-Login
+- **Form Handling**: Flask-WTF
+- **Cloud Services**:
+  - Google Cloud Speech-to-Text
+  - Google Cloud Text-to-Speech
+  - Google Cloud Translation API
+  - Google Cloud Storage (GCS)
+
+### Frontend
+- **Templates**: Jinja2
+- **Static Files**: CSS, JavaScript
+- **Audio Processing**: 
+  - pydub
+  - yt-dlp (for YouTube video processing)
+
+### Security
+- **Password Hashing**: bcrypt
+- **CSRF Protection**: Flask-WTF
+- **File Encryption**: Fernet (cryptography)
+- **Security Headers**: Custom middleware
+
+### Development Tools
+- **Environment Management**: python-dotenv
+- **Database Migrations**: Flask-Migrate
+- **API Client**: Supabase Python Client
+
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    User ||--o{ TranslationHistory : creates
+    User ||--o{ AudioFile : uploads
+    User ||--o{ LoginHistory : has
+    User ||--o{ PasswordReset : requests
+    User ||--o{ UserSession : maintains
+    
+    User {
+        string id PK
+        string email UK
+        string password_hash
+        boolean is_admin
+        boolean is_active
+        datetime created_at
+        datetime last_login
+        string reset_token
+        datetime reset_token_expiry
+    }
+    
+    TranslationHistory {
+        string id PK
+        string user_id FK
+        string source_language
+        string target_language
+        string original_text
+        string translated_text
+        string audio_file_path
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+    
+    AudioFile {
+        string id PK
+        string user_id FK
+        string filename
+        string file_path
+        string mime_type
+        integer file_size
+        string storage_type
+        datetime created_at
+        datetime expires_at
+    }
+    
+    LoginHistory {
+        string id PK
+        string user_id FK
+        string ip_address
+        string user_agent
+        datetime login_time
+        boolean success
+        string failure_reason
+    }
+    
+    PasswordReset {
+        string id PK
+        string user_id FK
+        string token
+        datetime created_at
+        datetime expires_at
+        boolean used
+    }
+    
+    UserSession {
+        string id PK
+        string user_id FK
+        string session_token
+        datetime created_at
+        datetime expires_at
+        boolean is_active
+    }
+    
+    Language {
+        string code PK
+        string name
+        string native_name
+        boolean is_active
+    }
+    
+    TranslationHistory }o--|| Language : source_language
+    TranslationHistory }o--|| Language : target_language
+```
+
+## Database Schema
+
+### User Table
+- `id`: Primary Key (UUID)
+- `email`: String (Unique)
+- `password_hash`: String (Hashed)
+- `is_admin`: Boolean
+- `is_active`: Boolean
+- `created_at`: DateTime
+- `last_login`: DateTime
+- `reset_token`: String (Nullable)
+- `reset_token_expiry`: DateTime (Nullable)
+
+### TranslationHistory Table
+- `id`: Primary Key (UUID)
+- `user_id`: Foreign Key (References User.id)
+- `source_language`: String (Language Code)
+- `target_language`: String (Language Code)
+- `original_text`: Text
+- `translated_text`: Text
+- `audio_file_path`: String
+- `status`: String (pending, completed, failed)
+- `created_at`: DateTime
+- `updated_at`: DateTime
+
+### AudioFile Table
+- `id`: Primary Key (UUID)
+- `user_id`: Foreign Key (References User.id)
+- `filename`: String
+- `file_path`: String
+- `mime_type`: String
+- `file_size`: Integer
+- `storage_type`: String (local, gcs)
+- `created_at`: DateTime
+- `expires_at`: DateTime
+
+### LoginHistory Table
+- `id`: Primary Key (UUID)
+- `user_id`: Foreign Key (References User.id)
+- `ip_address`: String
+- `user_agent`: String
+- `login_time`: DateTime
+- `success`: Boolean
+- `failure_reason`: String (Nullable)
+
+### PasswordReset Table
+- `id`: Primary Key (UUID)
+- `user_id`: Foreign Key (References User.id)
+- `token`: String
+- `created_at`: DateTime
+- `expires_at`: DateTime
+- `used`: Boolean
+
+### UserSession Table
+- `id`: Primary Key (UUID)
+- `user_id`: Foreign Key (References User.id)
+- `session_token`: String
+- `created_at`: DateTime
+- `expires_at`: DateTime
+- `is_active`: Boolean
+
+### Language Table
+- `code`: Primary Key (String)
+- `name`: String
+- `native_name`: String
+- `is_active`: Boolean
+
+## Key Features
+
+1. **User Authentication**
+   - Sign up with email and password
+   - Login/Logout functionality
+   - Password change capability
+   - Admin user support
+
+2. **Audio Translation**
+   - Support for multiple audio formats (WebM, MP3, WAV)
+   - YouTube video processing
+   - Multiple language support
+   - Real-time translation
+
+3. **File Management**
+   - Secure file upload
+   - Temporary file storage
+   - Automatic file cleanup
+   - Cloud storage integration
+
+4. **Translation History**
+   - User-specific translation history
+   - Pagination support
+   - History deletion capability
+   - Source and target language tracking
+
+## Security Features
+
+1. **Authentication Security**
+   - Password hashing using bcrypt
+   - CSRF protection
+   - Session management
+   - Secure password reset
+
+2. **File Security**
+   - Secure file upload validation
+   - File type verification
+   - Temporary file management
+   - Encrypted storage
+
+3. **API Security**
+   - Rate limiting
+   - Input validation
+   - Secure headers
+   - API key management
+
+## Database Functions and Operations
+
+### User Table Functions
+1. **User Management**
+   - `get(user_id)`: Retrieve user by ID
+   - `get_by_email(email)`: Retrieve user by email
+   - `set_password(password)`: Hash and set user password
+   - `check_password(password)`: Verify password hash
+   - `create_user(email, password)`: Create new user account
+   - `update_user(user_id, data)`: Update user information
+   - `deactivate_user(user_id)`: Deactivate user account
+   - `activate_user(user_id)`: Reactivate user account
+   - `get_all_users(page, per_page)`: List all users with pagination
+   - `search_users(query)`: Search users by email or other criteria
+
+2. **Authentication**
+   - `login_user(email, password)`: Authenticate user login
+   - `logout_user(user_id)`: End user session
+   - `validate_reset_token(token)`: Validate password reset token
+   - `update_last_login(user_id)`: Update last login timestamp
+
+### TranslationHistory Table Functions
+1. **Translation Management**
+   - `save_translation(user_id, source_lang, target_lang, original_text, translated_text)`: Save new translation
+   - `get_translation(translation_id)`: Retrieve specific translation
+   - `get_user_translations(user_id, page, per_page)`: Get user's translation history
+   - `update_translation_status(translation_id, status)`: Update translation status
+   - `delete_translation(translation_id)`: Delete translation record
+   - `search_translations(user_id, query)`: Search through translations
+   - `get_recent_translations(user_id, limit)`: Get recent translations
+   - `get_translation_stats(user_id)`: Get translation statistics
+
+2. **Batch Operations**
+   - `bulk_save_translations(translations)`: Save multiple translations
+   - `bulk_delete_translations(translation_ids)`: Delete multiple translations
+   - `export_translations(user_id, format)`: Export translation history
+
+### AudioFile Table Functions
+1. **File Management**
+   - `save_audio_file(user_id, file_data)`: Save new audio file
+   - `get_audio_file(file_id)`: Retrieve audio file
+   - `delete_audio_file(file_id)`: Delete audio file
+   - `update_audio_file(file_id, data)`: Update file metadata
+   - `get_user_audio_files(user_id, page, per_page)`: List user's audio files
+   - `cleanup_expired_files()`: Remove expired audio files
+   - `get_file_stats(user_id)`: Get file usage statistics
+
+2. **Storage Operations**
+   - `move_to_cloud_storage(file_id)`: Move file to cloud storage
+   - `download_file(file_id)`: Download audio file
+   - `get_file_url(file_id)`: Get file access URL
+   - `verify_file_integrity(file_id)`: Verify file integrity
+
+### LoginHistory Table Functions
+1. **Login Tracking**
+   - `log_login_attempt(user_id, ip_address, user_agent, success)`: Log login attempt
+   - `get_login_history(user_id, page, per_page)`: Get user's login history
+   - `get_failed_attempts(user_id)`: Get failed login attempts
+   - `clear_login_history(user_id)`: Clear login history
+   - `get_suspicious_activity(user_id)`: Detect suspicious login patterns
+
+2. **Security**
+   - `check_login_frequency(user_id)`: Check login frequency
+   - `block_suspicious_ip(ip_address)`: Block suspicious IP
+   - `get_active_sessions(user_id)`: Get active user sessions
+
+### PasswordReset Table Functions
+1. **Password Management**
+   - `create_reset_request(user_id)`: Create password reset request
+   - `validate_reset_request(token)`: Validate reset request
+   - `complete_reset_request(token, new_password)`: Complete password reset
+   - `cancel_reset_request(token)`: Cancel reset request
+   - `cleanup_expired_requests()`: Remove expired reset requests
+
+2. **Security**
+   - `check_reset_frequency(user_id)`: Check reset request frequency
+   - `invalidate_user_resets(user_id)`: Invalidate all user reset requests
+
+### UserSession Table Functions
+1. **Session Management**
+   - `create_session(user_id)`: Create new user session
+   - `validate_session(session_token)`: Validate session token
+   - `end_session(session_token)`: End user session
+   - `get_active_sessions(user_id)`: Get user's active sessions
+   - `cleanup_expired_sessions()`: Remove expired sessions
+
+2. **Security**
+   - `refresh_session(session_token)`: Refresh session expiry
+   - `force_logout_all(user_id)`: Force logout from all devices
+   - `check_session_validity(session_token)`: Check session validity
+
+### Language Table Functions
+1. **Language Management**
+   - `get_language(code)`: Get language by code
+   - `get_all_languages()`: Get all supported languages
+   - `add_language(code, name, native_name)`: Add new language
+   - `update_language(code, data)`: Update language information
+   - `deactivate_language(code)`: Deactivate language
+   - `activate_language(code)`: Activate language
+
+2. **Translation Support**
+   - `get_available_languages()`: Get available translation languages
+   - `validate_language_pair(source, target)`: Validate language pair
+   - `get_language_stats()`: Get language usage statistics
+
+## Common Database Operations
+1. **Utility Functions**
+   - `begin_transaction()`: Start database transaction
+   - `commit_transaction()`: Commit database transaction
+   - `rollback_transaction()`: Rollback database transaction
+   - `execute_query(query, params)`: Execute custom query
+   - `bulk_insert(table, data)`: Bulk insert records
+   - `bulk_update(table, data)`: Bulk update records
+
+2. **Maintenance**
+   - `optimize_tables()`: Optimize database tables
+   - `backup_database()`: Create database backup
+   - `cleanup_old_data()`: Remove old/unused data
+   - `reindex_tables()`: Reindex database tables
+

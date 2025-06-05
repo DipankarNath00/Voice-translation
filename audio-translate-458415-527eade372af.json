@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "audio-translate-458415",
+  "private_key_id": "527eade372af281c8c96da8484d32d0ecb17aaa9",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQClXmvwct6yeefq\nSWQlb2WzD5qIKsyevMWLvSU2NvUh4x58dQw7I73HNPbliq0DfHflRPdsowFxkXb4\nrG1hpszkZb6Rru4zlwxoAJPD+Uhqn4kYFG9bbDoKOS2jrm2bhHAfZCJ3fFP7a4LW\nQExXgLI6ogLr9twoGVXVWFlSPu+GB70ezJq4d24NVD5P2rCSAh+gpJu5gmRyzzhd\nHQYUYaLf0AR4I55DMYnRQAOYLgQN2c3t8Eq9tJcq7fES/qR9F+WljYOKl380qrLl\nsR0pPf7S8tVFST37PnySKn2vi0mMBLD7R43pHD0H4DcKeBCFOt0NLKZQTG6SrMte\ni0xgyME1AgMBAAECggEALAUh+4xAbscXrpyhvXtVWaCGNMgb1weOGIAdlzxy7XXd\naCjqPBXsD0qwjHLpUlvAOLYunOsZV8duoYyYw11Y/lV9MJ+dxfrn8QlyTEEf/03/\nevr5l58MJiuJVCB7CeJrzFdl+2OLoYpBdlIAYGygRQ5ac8CvYzc3S4bspAGf1g/s\ntbhHh2vkEbBheH5/+hmVktVYlv4E7iYFqVeVseD6zrfkxj0wnzg/u3YtV8hNCDgO\nw4TFZP+s+CUgvfVH3yJJIfEMFB7U1Bjamb/MWrgcgvIyWtCW+99MuXen9r3HzEX7\nOlRz5vyy3e5idKIaNrpwAoCqL9j4tb//h4XbN39wQwKBgQDUXG6H8XJHk3p5XGIg\n6NpFm9WT+I/Qb+xUccPkR6sDmHgNn6C97p8FTL0sMJcwzs/c2P+agL1A0Z3mb7e3\nzQk75ofJdXbuz/t7n78cNVs/rLOk6hxJoyg5GcUnSl39OisYLsd2c0odYndYpNff\nTiwUPm9yovVc8cTbTmfx8Y+BcwKBgQDHWeTnfEGBdm6qtTzfvn+drAuT1E8FFrgh\n3IYHBQfZUAF9JmrfCHOSAAw7brJdOmaDviButMuUP2G9ibTwqIqvpFPFjitUD6MT\nz7OXr8DrSeycwx1BhiNUXwLYQ5de2kAl4ythiW51RqO215t4KQqmbTf4q/N5Rum5\nUgM4bdHotwKBgQDIVucDotmAAvbA9VGx4FrC3o/wB8eNCXm39JesjZwdSULA/34C\nkNI+irXQsYqAxiq9G46PsLJaKya+lViJsonqk8I4YXOxOk7ywrLlpsSN3pyfkSjc\no2q368LeHT9sPOsY5lDQQ1WBQTp8Sw9IoJPfCUPUrz2w0Hk5t89CJfSPVwKBgAZh\nuFQ4xBgS5IQOfT5kaM1xXoWC/GybR5W964R6AsBQMVwCSNWO/bQk0D9u0cLuRa3d\n/kfM/d9nEAfzSpmRq67nwc7HOFfekEfoFEW82J4vpaV3EY6xbpwa1op5z3S34+nS\nlebvcVvLwR3vVQjJt4+QW4RYbNjrDjxihbveuCONAoGAJ2ASaBASDjEvHT/FAYO8\nI6poR6kadlAGXdHOY7TeRqIkfpKykxnlMpu9QRzlPik6NBjANCipzNrIiJbwru26\n/ZHMfmq04oqiTmKnd/bJrE0ThM+yfWKnQuhXqAqHxYsH1y76A6nkoZuQ+geIVFds\nno8Y/+ntT00+ZPYhJ/rTEtQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "voice-trans-app@audio-translate-458415.iam.gserviceaccount.com",
+  "client_id": "113980934112116725049",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/voice-trans-app%40audio-translate-458415.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

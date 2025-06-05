@@ -1,250 +1,440 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Translator - Translate</title>
-    <style>
-        :root {
-            --bg-color: #f4f4f4;
-            --text-color: #000;
-            --container-bg: #fff;
-            --button-bg: #3498db;
-            --button-hover: #2980b9;
-        }
+{% extends 'base.html' %}
 
-        body.dark-mode {
-            --bg-color: #121212;
-            --text-color: #f4f4f4;
-            --container-bg: #1e1e1e;
-            --button-bg: #555;
-            --button-hover: #777;
-        }
+{% block title %}{{ title }}{% endblock %}
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            transition: all 0.3s ease;
-        }
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center"><i class="bi bi-mic me-2"></i>Voice Translator</h2>
 
-        .container {
-            background: var(--container-bg);
-            padding: 30px;
-            max-width: 600px;
-            margin: auto;
-            border-radius: 15px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+    <div class="card p-4 mb-4 shadow-sm">
+        <form method="POST" action="{{ url_for('upload_translate') }}" enctype="multipart/form-data" id="translateForm">
+            {{ form.hidden_tag() }}
+            <div class="row g-3 align-items-end">
+                {# Source Language Selection #}
+                <div class="col-md-5">
+                    {{ form.source_language.label(class="form-label") }}
+                    {{ form.source_language(class="form-select form-select-sm") }}
+                </div>
+                {# Target Language Selection (Multi-Select) #}
+                <div class="col-md-5">
+                    {{ form.target_languages.label(class="form-label") }}
+                    {{ form.target_languages(class="form-select form-select-sm", multiple="multiple") }}
+                </div>
+                <div class="col-md-2">
+                    <button type="button" id="recordButton" class="btn btn-danger w-100 btn-sm">
+                        <i class="bi bi-mic-fill me-1"></i><span>Start Recording</span>
+                    </button>
+                </div>
+            </div>
 
-        h1 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
+            <!-- Military Mode Section -->
+            <div class="mt-4">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="militaryMode">
+                    <label class="form-check-label" for="militaryMode">
+                        <i class="bi bi-shield-lock me-1"></i>Military Mode
+                    </label>
+                </div>
+                
+                <!-- Encryption Key Field -->
+                <div class="mb-3">
+                    <label for="encKey" class="form-label">Encryption Key</label>
+                    <input type="text" class="form-control" id="encKey" name="encKey" style="display: none;"
+                           placeholder="Paste Fernet key here (e.g., g95WUai_wFPOlp2D9CdnmVnhfDB4sNKpy0VHhCWYG6I=)">
+                    <small class="form-text text-muted">Enter the same key in both fields</small>
+                </div>
 
-        select, input[type="text"], button {
-            padding: 10px;
-            margin: 5px 0;
-            width: 100%;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
+                <!-- Decryption Key Field -->
+                <div class="mb-3">
+                    <label for="decKey" class="form-label">Decryption Key</label>
+                    <input type="text" class="form-control" id="decKey" name="decKey" style="display: none;"
+                           placeholder="Must match Encryption Key">
+                </div>
 
-        button {
-            background-color: var(--button-bg);
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+                <!-- Info Alert -->
+                <div class="alert alert-info" role="alert" style="display: none;" id="militaryModeInfo">
+                    <i class="bi bi-info-circle me-1"></i>
+                    When Military Mode is activated, an email notification will be sent with your location information.
+                </div>
+            </div>
 
-        button:hover {
-            background-color: var(--button-hover);
-        }
-
-        .output {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #spinner {
-            display: none;
-            margin: 10px auto;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .toast {
-            visibility: hidden;
-            min-width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px;
-            border-radius: 5px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-        }
-
-        .toast.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2s;
-        }
-
-        @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-
-        @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-
-        .mode-toggle {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .switch-btn {
-            width: 100%;
-            background-color: #666;
-            color: white;
-        }
-
-    </style>
-</head>
-<body>
-    <body>
-        <!-- Navbar -->
-<nav class="navbar">
-    <div class="navbar-container">
-        <div class="nav-left">
-            <a href="../templates/home.html">Home</a>
-            <a href=".about.html/" class="nav-link">About Us</a>
-            <a href="./contact.html" class="nav-link">Contact</a>
-        </div>
-        <div class="nav-right">
-            <button onclick="toggleDarkMode()" class="mode-btn">🌓 Toggle Mode</button>
-        </div>
+            {{ form.submit(class="btn btn-primary mt-3 d-none") }}
+        </form>
     </div>
-</nav>
 
+    <!-- Status and Error Messages -->
+    <div id="status" class="alert alert-info d-none align-items-center" role="alert">
+        <div class="spinner-border spinner-border-sm me-2 d-none" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <span class="status-text">Status message here</span>
+        <span class="recording-indicator ms-auto d-none"></span>
+    </div>
 
-        
-        <!-- Main Container -->
-        <div class="container">
-            <h1>Translate Speech to Multiple Languages</h1>
-    
-            <label for="language">Select Target Language:</label>
-            <select id="language">
-                <option>Hindi</option>
-                <option>Bengali</option>
-                <option>Tamil</option>
-                <option>Telugu</option>
-                <option>Gujarati</option>
-                <option>Marathi</option>
-                <option>Kannada</option>
-                <option>Malayalam</option>
-                <option>Punjabi</option>
-                <option>Odia</option>
-                <option>Urdu</option>
-                <option>French</option>
-                <option>Spanish</option>
-                <option>German</option>
-                <option>Italian</option>
-                <option>Russian</option>
-                <option>Chinese (Simplified)</option>
-                <option>Japanese</option>
-                <option>Korean</option>
-                <option>Arabic</option>
-                <option>Portuguese</option>
-            </select>
-    
-            <label><input type="checkbox" id="militaryMode"> Military Mode</label>
-            <input type="text" id="encKey" placeholder="Encryption Key">
-            <input type="text" id="decKey" placeholder="Decryption Key">
-    
-            <button onclick="startTranslation()">🎤 Speak & Translate</button>
-            <button class="switch-btn" disabled>🔁 Switch Source/Target (Coming Soon)</button>
-    
-            <div id="spinner"></div>
-    
-            <div class="output">
-                <p><strong>Original:</strong> <span id="originalText"></span></p>
-                <p><strong>Translated:</strong> <span id="translatedText"></span></p>
-                <audio id="audioPlayer" controls></audio>
+    <div id="error" class="alert alert-danger d-none" role="alert">
+        <span class="error-text"></span>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results" class="mt-4 d-none">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Translation Results</h5>
+                <p class="mb-2">
+                    <strong>Detected Source Language:</strong>
+                    <span id="detectedSourceLanguage" class="badge bg-secondary">Not detected</span>
+                </p>
+                <p class="mb-2">
+                    <strong>Original Text:</strong>
+                    <span id="originalText" class="text-muted">No text detected</span>
+                </p>
+                <div id="multiResultsContainer"></div>
             </div>
         </div>
-    
-        <div id="toast" class="toast"></div>
-    
+    </div>
+</div>
 
-<div id="toast" class="toast"></div>
+<style>
+:root {
+    /* ... existing vars ... */
+    --military-field-border: #ccc;
+}
+
+body.dark-mode {
+    /* ... existing dark mode vars ... */
+    --military-field-border: #555;
+}
+
+/* Styles for the key input fields */
+input[type="text"][id$="Key"] {
+    padding: 10px;
+    margin: 5px 0;
+    width: 100%;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid var(--military-field-border);
+    background-color: var(--container-bg);
+    color: var(--text-color);
+    display: none;
+}
+
+#keyHint {
+    font-size: 0.9em;
+    color: var(--text-color);
+    text-align: center;
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+/* Military Mode specific styles */
+#encKey, #decKey {
+    font-family: monospace;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    width: 100%;
+    margin-bottom: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+.form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.form-check-input {
+    cursor: pointer;
+}
+
+.bg-light {
+    background-color: var(--bs-light) !important;
+}
+
+body.dark-mode .bg-light {
+    background-color: var(--bs-dark) !important;
+}
+</style>
 
 <script>
-    function showToast(message) {
-        const toast = document.getElementById("toast");
-        toast.textContent = message;
-        toast.className = "toast show";
-        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
-    }
+    const recordButton = document.getElementById('recordButton');
+    const recordButtonIcon = recordButton.querySelector('i');
+    const recordButtonText = recordButton.querySelector('span');
+    const targetLanguageSelect = document.getElementById('target_languages');
+    const sourceLanguageSelect = document.getElementById('source_language');
+    const statusDiv = document.getElementById('status');
+    const statusSpinner = statusDiv.querySelector('.spinner-border');
+    const statusText = statusDiv.querySelector('.status-text');
+    const recordingIndicator = statusDiv.querySelector('.recording-indicator');
+    const errorDiv = document.getElementById('error');
+    const errorText = errorDiv.querySelector('.error-text');
+    const resultsDiv = document.getElementById('results');
+    const detectedSourceLanguageSpan = document.getElementById('detectedSourceLanguage');
+    const originalTextSpan = document.getElementById('originalText');
+    const multiResultsContainer = document.getElementById('multiResultsContainer');
+    const translateForm = document.getElementById('translateForm');
 
-    function toggleDarkMode() {
-        document.body.classList.toggle("dark-mode");
-    }
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let stream;
 
-    async function startTranslation() {
-        const language = document.getElementById('language').value;
-        const military = document.getElementById('militaryMode').checked;
-        const encKey = document.getElementById('encKey').value;
-        const decKey = document.getElementById('decKey').value;
-
-        document.getElementById('spinner').style.display = 'block';
-        showToast("🎙️ Please speak clearly...");
-
+    async function startRecording() {
+        console.log("startRecording function called");
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showError("Your browser does not support audio recording.");
+            return;
+        }
+        resetUIState(true); // Reset UI before starting
         try {
-            const response = await fetch('/translate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ language, military, encKey, decKey })
-            });
+            console.log("Attempting to get user media...");
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log("Successfully got user media stream.");
+            
+            console.log("Attempting to create MediaRecorder...");
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            console.log("Successfully created MediaRecorder.");
 
-            const result = await response.json();
-            document.getElementById('spinner').style.display = 'none';
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
 
-            if (result.error) {
-                showToast(`❌ ${result.error}`);
-            } else {
-                document.getElementById('originalText').textContent = result.original;
-                document.getElementById('translatedText').textContent = result.translated;
-                const audio = document.getElementById('audioPlayer');
-                audio.src = result.audio;
-                audio.load();
-                audio.play();
-                showToast(`✅ Translated to ${language}`);
-            }
+            mediaRecorder.onstop = async () => {
+                statusSpinner.classList.remove('d-none');
+                recordingIndicator.classList.add('d-none');
+                showStatus("Processing recording...");
+                const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                audioChunks = [];
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                await uploadAudio(audioBlob);
+            };
+
+            mediaRecorder.onerror = (event) => {
+                console.error("MediaRecorder error:", event.error);
+                showError(`Recording error: ${event.error.name || 'Unknown error'}`);
+                stopStream();
+                resetUIState();
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            recordButton.classList.remove('btn-danger');
+            recordButton.classList.add('btn-warning');
+            recordButtonIcon.classList.remove('bi-mic-fill');
+            recordButtonIcon.classList.add('bi-stop-circle-fill');
+            recordButtonText.textContent = 'Stop Recording';
+            showStatus("Recording started...");
+            recordingIndicator.classList.remove('d-none');
+            errorDiv.classList.add('d-none');
+            resultsDiv.classList.add('d-none');
+
         } catch (err) {
-            document.getElementById('spinner').style.display = 'none';
-            showToast("❌ Error processing request.");
+            console.error("Error in startRecording:", err);
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                showError("Microphone access denied. Please allow permission in your browser settings.");
+            } else {
+                showError(`Could not access microphone: ${err.name || err.message}.`);
+            }
+            resetUIState();
         }
     }
-</script>
 
-</body>
-</html>
+    function stopStream() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            console.log("Media stream stopped.");
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            recordingIndicator.classList.add('d-none');
+            console.log("Recording stopped by user.");
+        }
+        stopStream();
+    }
+
+    async function uploadAudio(audioBlob) {
+        if (audioBlob.size === 0) {
+            showError("Cannot process empty recording.");
+            resetUIState();
+            return;
+        }
+
+        // Validate military mode keys before proceeding
+        if (!validateKeys()) {
+            return;
+        }
+
+        const formData = new FormData(translateForm);
+        formData.append('audio_file', audioBlob, 'recording.webm');
+        
+        // Add military mode data
+        formData.append('military', militaryModeCheckbox.checked);
+        if (militaryModeCheckbox.checked) {
+            formData.append('encKey', encKeyInput.value);
+            formData.append('decKey', decKeyInput.value);
+        }
+
+        showStatus("Uploading and processing...", true);
+        recordButton.disabled = true;
+
+        try {
+            const response = await fetch("{{ url_for('upload_translate') }}", {
+                method: 'POST',
+                body: formData
+            });
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                showError("Server returned invalid response format");
+                resetUIState();
+                return;
+            }
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `Server error: ${response.status}`);
+            }
+            
+            showStatus(data.message || 'Processing complete!', false, 'success');
+            
+            // Update UI with results
+            detectedSourceLanguageSpan.textContent = data.detected_source_language || 'N/A';
+            detectedSourceLanguageSpan.classList.remove('bg-secondary');
+            detectedSourceLanguageSpan.classList.add('bg-info');
+            originalTextSpan.textContent = data.original_text;
+            originalTextSpan.classList.remove('text-muted');
+            
+            // Clear and update multi-results
+            multiResultsContainer.innerHTML = '';
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(result => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'mt-3';
+                    resultDiv.innerHTML = `
+                        <h6>${result.target_lang}</h6>
+                        <p class="mb-2">${result.translated_text}</p>
+                        ${result.audio_filename ? `
+                            <audio controls class="w-100">
+                                <source src="{{ url_for('play', filename='') }}${result.audio_filename}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        ` : ''}
+                    `;
+                    multiResultsContainer.appendChild(resultDiv);
+                });
+            } else {
+                multiResultsContainer.innerHTML = '<p class="text-muted">No translations were generated.</p>';
+            }
+            
+            resultsDiv.classList.remove('d-none');
+            recordButton.disabled = false;
+
+        } catch (error) {
+            console.error('Processing Error:', error);
+            showError(`Processing failed: ${error.message}`);
+            resetUIState();
+        }
+    }
+
+    function showStatus(message, showSpinner = false, type = 'info') {
+        statusText.textContent = message;
+        statusDiv.className = `alert alert-${type} d-flex align-items-center`;
+        statusDiv.classList.remove('d-none');
+        errorDiv.classList.add('d-none');
+        if (showSpinner) {
+            statusSpinner.classList.remove('d-none');
+        } else {
+            statusSpinner.classList.add('d-none');
+        }
+        if (type === 'info' && message.toLowerCase().includes('recording')) {
+            recordingIndicator.classList.remove('d-none');
+        } else {
+            recordingIndicator.classList.add('d-none');
+        }
+    }
+
+    function showError(message) {
+        errorText.textContent = message;
+        errorDiv.classList.remove('d-none');
+        statusDiv.classList.add('d-none');
+    }
+
+    function resetUIState(keepRecording = false) {
+        if (!keepRecording) {
+            isRecording = false;
+            recordButton.classList.remove('btn-warning');
+            recordButton.classList.add('btn-danger');
+            recordButtonIcon.classList.remove('bi-stop-circle-fill');
+            recordButtonIcon.classList.add('bi-mic-fill');
+            recordButtonText.textContent = 'Start Recording';
+        }
+        recordButton.disabled = false;
+        statusSpinner.classList.add('d-none');
+        recordingIndicator.classList.add('d-none');
+    }
+
+    // Event Listeners
+    recordButton.addEventListener('click', () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    });
+
+    // Military Mode Elements
+    const militaryModeCheckbox = document.getElementById('militaryMode');
+    const encKeyInput = document.getElementById('encKey');
+    const decKeyInput = document.getElementById('decKey');
+    const militaryModeInfo = document.getElementById('militaryModeInfo');
+
+    function updateKeyInputVisibility() {
+        const isVisible = militaryModeCheckbox.checked;
+        encKeyInput.style.display = isVisible ? 'block' : 'none';
+        decKeyInput.style.display = isVisible ? 'block' : 'none';
+        militaryModeInfo.style.display = isVisible ? 'block' : 'none';
+        
+        if (!isVisible) {
+            encKeyInput.value = '';
+            decKeyInput.value = '';
+        }
+    }
+
+    // Initial call to set correct state on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateKeyInputVisibility();
+        console.log('Military Mode fields visibility updated');
+    });
+
+    // Event listener for checkbox change
+    militaryModeCheckbox.addEventListener('change', function() {
+        console.log('Military Mode checkbox changed:', this.checked);
+        updateKeyInputVisibility();
+    });
+
+    // Add key validation
+    function validateKeys() {
+        if (militaryModeCheckbox.checked) {
+            if (!encKeyInput.value || !decKeyInput.value) {
+                showError("Both encryption and decryption keys are required for Military Mode.");
+                return false;
+            }
+            if (encKeyInput.value !== decKeyInput.value) {
+                showError("Encryption and decryption keys must match.");
+                return false;
+            }
+        }
+        return true;
+    }
+</script>
+{% endblock %}

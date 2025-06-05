@@ -1,135 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Translator - Home</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+{% extends 'base.html' %}
 
-        .hero-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #3498db;
-            color: white;
-            text-align: center;
-            flex-direction: column;
-        }
+{% block title %}Welcome{% endblock %}
 
-        .hero-section h1 {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
+{% block content %}
+<div class="p-5 mb-4 bg-body-tertiary rounded-3 shadow-sm">
+    <div class="container-fluid py-5 text-center">
+        <h1 class="display-4 fw-bold"><i class="bi bi-translate"></i> Welcome to VoiceTrans</h1>
+        <p class="fs-4 text-muted">Instantly translate your voice into multiple languages.</p>
+        <p class="lead mb-4">Leveraging speech recognition and machine translation to break language barriers.</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg me-md-2">Get Started (Sign Up)</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg">Login</a>
+        {% else %}
+        <a href="{{ url_for('translate_page') }}" class="btn btn-success btn-lg shadow-sm"><i class="bi bi-mic-fill me-2"></i>Start Translating Now</a>
+        {% endif %}
+    </div>
+</div>
 
-        .hero-section p {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-        }
-
-        .hero-section a {
-            background-color: #f39c12;
-            color: black;
-            font-size: 1.2rem;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .hero-section a:hover {
-            background-color: #e67e22;
-        }
-
-        .features-section {
-            padding: 40px 20px;
-            background-color: white;
-            text-align: center;
-        }
-
-        .features-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 40px;
-            color: #2c3e50;
-        }
-
-        .features-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-
-        .feature-card {
-            background-color: #ecf0f1;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            color: #2980b9;
-        }
-
-        .feature-card p {
-            font-size: 1.1rem;
-            color: #7f8c8d;
-        }
-
-        footer {
-            background-color: #34495e;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        footer p {
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <h1>Welcome to the Multi-language Voice Translator</h1>
-        <p>Translate your speech into multiple languages instantly</p>
-        <a href="/translate">Get Started</a>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features-section">
-        <h2>Features</h2>
-        <div class="features-container">
-            <!-- Feature 1 -->
-            <div class="feature-card">
-                <h3>Real-time Translation</h3>
-                <p>Instant translation of your speech into your desired language.</p>
-            </div>
-            <!-- Feature 2 -->
-            <div class="feature-card">
-                <h3>Military Mode</h3>
-                <p>Enable military mode for encrypted and secure communication.</p>
-            </div>
-            <!-- Feature 3 -->
-            <div class="feature-card">
-                <h3>Multiple Languages</h3>
-                <p>Support for multiple languages like Hindi, Bengali, Tamil, and more.</p>
+<div class="row row-cols-1 row-cols-md-2 g-4">
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                 <h2 class="card-title h4"><i class="bi bi-question-circle me-2"></i>How it Works</h2>
+                <p class="card-text">Simply click the record button, speak clearly into your microphone, select your source and target languages, and click stop. We handle the rest!</p>
+                <ol class="list-group list-group-numbered list-group-flush mt-auto">
+                    <li class="list-group-item">Record your voice</li>
+                    <li class="list-group-item">Automatic Speech-to-Text</li>
+                    <li class="list-group-item">Text Translation</li>
+                    <li class="list-group-item">Text-to-Speech Audio</li>
+                </ol>
             </div>
         </div>
-    </section>
-
-    <!-- Footer Section -->
-    <footer>
-        <p>&copy; 2025 Voice Translator. All rights reserved.</p>
-    </footer>
-
-</body>
-</html>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title h4"><i class="bi bi-stars me-2"></i>Key Features</h2>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Real-time (near) Voice Input</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Multi-language Support (including Indian languages)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Speech Recognition Powered by Google</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Translation via Deep Translator</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Text-to-Speech Output (gTTS)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>User Accounts & Authentication</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Translation History Tracking</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
